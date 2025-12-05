@@ -1,32 +1,22 @@
-# EVA Mobile - EVA OS 多模态大模型示例
+<div align="center">
+  <a href="./README.md"><img height="28" src="https://img.shields.io/badge/🌐 English-1f6feb?style=flat-square"></a>&nbsp;<a href="./README-zh.md"><img height="28" src="https://img.shields.io/badge/🇨🇳 中文-1f6feb?style=flat-square"></a>
+</div>
+
+
+# EVA Mobile - EVA OS 多模态大模型手机端示例
 
 [![React Native](https://img.shields.io/badge/React_Native-0.81.4-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-54-black.svg)](https://expo.dev/)
 [![EVA OS](https://img.shields.io/badge/Powered_by-EVA_OS-purple.svg)](https://github.com/autoark)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**EVA Mobile** 是 **EVA OS** 的官方移动端开源示例应用，专为展示 EVA OS 强大的**实时多模态（语音 + 视频）大模型**能力而构建。
+**EVA Mobile** 是 **EVA OS** 的官方移动端开源示例应用，专为展示 EVA OS 强大的**实时多模态大模型**能力而构建。
 
 作为一个开源参考实现，本项目展示了如何将移动端应用（基于 React Native）无缝接入 EVA OS 服务，实现低延迟、高互动的 AI 体验。
 
----
-
-## 🌟 核心特性：EVA OS 能力展示
-
-EVA OS 是**专为新一代硬件打造的开源·多模态·低延迟实时AI Agent引擎**。本项目通过直观的移动端体验，演示了 EVA OS 如何让 AI 不仅能"听"和"看"，还能实时地以语音和视频与用户进行自然交互。
-
-- **🗣️ 实时全双工语音**  
-  毫秒级响应的语音交互，支持自然打断，体验如同真人面对面交谈。
-
-- **👁️ 多模态视觉理解**  
-  通过手机摄像头实时传输视频流，EVA 模型能"看到"你的环境、表情和动作，并将其融入对话上下文。
-
-- **🎥 实时视频流**  
-  支持接收 EVA 服务生成的实时视频流，提供沉浸式的面对面交流感。
-
 ## 🔌 连接流程详解
 
-本项目演示了客户端如何与 **LiveKit** 实时音视频服务对接。以下是标准的对接流程说明：
+EVA OS通过WebRTC提供流式多模态AI服务。本项目演示了客户端如何与 **LiveKit** 实时音视频服务对接。以下是标准的对接流程说明：
 
 ### 1. 获取服务凭证 (API Key & Token)
 
@@ -36,14 +26,14 @@ EVA OS 是**专为新一代硬件打造的开源·多模态·低延迟实时AI A
     前往 [EVA Console](https://eva.autoarkai.com) 创建一个 **Solution**，在 Solution 详情页中你将获得 API Key。
 
 2.  **请求房间 Token**:
-    客户端不能直接使用 API Key 连接。你需要向你的业务后端（调用 EVA 服务 API）发起请求，使用 API Key 换取一个**有时效性的房间 Token**（Room Token）。
+    客户端不能直接使用 API Key 连接。你需要向EVA服务器发起请求（调用 EVA 服务 API，使用上面获取的API KEY），得到一个**有时效性的房间 Token**（Room Token）。
 
 ### 2. 标准连接时序
 
 客户端与 LiveKit 的连接遵循标准的 Token 认证机制。无论你使用何种客户端框架，流程均一致：
 
 1.  **请求 Token**：
-    客户端 -> 业务后端 (EVA API) -> 返回 Room Token。
+    客户端 -> EVA OS (EVA API) -> 返回 Room Token。
 
 2.  **建立连接**：
     客户端使用获取到的 `Room Token` 和 LiveKit 服务器地址 (`WebSocket URL`) 初始化连接对象。
@@ -59,17 +49,17 @@ EVA OS 是**专为新一代硬件打造的开源·多模态·低延迟实时AI A
 我们提供了一个 `EvaClient` 工具类（位于 `lib/eva-client.ts`），用于简化 Token 的获取。以下展示了核心逻辑：
 
 ```typescript
-// lib/eva-client.ts (参考实现)
+// lib/eva-client.ts
 import axios from 'axios';
 
 export class EvaClient {
   constructor(
-    public baseUrl: string,
-    public wssUrl: string,
+    public baseUrl: string, // should be https://eva.autoarkai.com
+    public wssUrl: string, // should be wss://rtc.autoarkai.com
     public apiKey: string
   ) {}
 
-  // 使用 API Key 换取 Room Token
+  // 使用 API Key 获取 Room Token
   async getRoom() {
     const response = await axios.post(`${this.baseUrl}/api/solution/chat-room`, {}, {
       headers: {
@@ -93,7 +83,7 @@ export default function RoomConnect() {
   
   // 示例配置 (实际请使用环境变量)
   const client = new EvaClient(
-    "https://eva.autoark.ai.com",
+    "https://eva.autoarkai.com",
     "wss://rtc.autoarkai.com",
     "YOUR_API_KEY"
   );
@@ -134,27 +124,26 @@ export default function RoomConnect() {
 > 💡 详细的环境配置步骤（如 Android SDK、CocoaPods 等），请参考 React Native 官方文档：[Setting up the development environment](https://reactnative.dev/docs/environment-setup)。
 
 ### 2. 获取代码与安装
-
 ```bash
-git clone https://github.com/autoark/eva.git
-cd examples/eva-mobile
+git clone https://github.com/AutoArk/EVA-OS.git
+cd eva-mobile
 pnpm install
 ```
 
 ### 3. 配置环境变量
 
-在项目根目录下创建 `.env` 文件：
+在项目根目录(./eva-mobile)下创建 `.env` 文件：
 
 ```bash
 # .env
 
 # 必填：你的 EVA 服务 API 地址
 # 客户端将向此地址请求 Token
-EXPO_PUBLIC_BASE_URL=https://api.your-eva-service.com
+EXPO_PUBLIC_BASE_URL=https://eva.autoarkai.com
 
 # 必填：LiveKit WebSocket 地址
 # 请确保与 EVA 服务端配置的 LiveKit 实例一致
-EXPO_PUBLIC_WSS_URL=wss://your-livekit-instance.com
+EXPO_PUBLIC_WSS_URL=wss://rtc.autoarkai.com
 ```
 
 ### 4. 运行应用
@@ -181,8 +170,9 @@ pnpm android
 
 ## 🤝 贡献与支持
 
-欢迎提交 Issue 或 Pull Request。如需获取 EVA 服务 API Key 或商业支持，请访问我们的官网或联系 AutoArk 团队。
+欢迎提交 Issue 或 Pull Request。如需获取 EVA 服务 API Key 或商业支持，请访问我们的官网或联系EVA团队。
 
 ## 📄 许可证
+EVA OS is released under the MIT License.
 
-[MIT License](LICENSE)
+This means you are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, as long as you include the original copyright and permission notice in any copies or substantial portions.
