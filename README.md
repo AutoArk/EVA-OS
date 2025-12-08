@@ -8,7 +8,7 @@
 >  
 > Multimodal interaction powering intelligent devices · Instantly upgrade any hardware into a real-time multimodal AI terminal
 
-![Image](https://github.com/user-attachments/assets/bae2c5f6-cc00-4c0a-a1a3-3ad875c726c0)
+![Image](https://github.com/user-attachments/assets/becd21cd-f5f8-46c4-a8f5-6d11ddb73ac9)
 
 ## 🚀 Milestone Updates | Latest Updates
 
@@ -29,8 +29,7 @@ Through the EVA platform, developers can quickly create Solutions (AI Agents) wi
 
 > Core Benefits: EVA-flash model permanently free | Mobile SDK 100% open source | ESP32/RK/MCU embedded SDK coming soon
 
-![Image](https://github.com/user-attachments/assets/3c9e0fbc-d299-4e25-852c-c3801338302e)
-
+![Image](https://github.com/user-attachments/assets/4815de5b-4f2f-4ab7-8803-8d4445781d0c)
 ## **🧠 The Vision Behind EVA OS**
 
 Our belief:
@@ -39,8 +38,7 @@ Our belief:
 * AI hardware needs a “nervous system”
 * **EVA OS aims to become the nervous system of next-generation AI devices**
 
-![Image](https://github.com/user-attachments/assets/f34bef22-a208-4e21-8a8c-1e4d2a2e2868)
-
+![Image](https://github.com/user-attachments/assets/c2a7f170-b0e9-44d5-ad6d-cd830fcfe328)
 ### **AIOS (AI Operating System)** is defined as “the nervous system of next-generation AI hardware”
 
 * **​Interaction Layer：​** From **single-modality** to **multi-modality**  
@@ -48,29 +46,25 @@ Our belief:
 
 [▶️ Click to watch the high-quality interaction demo video](https://www.bilibili.com/video/BV1sV2vBWE8L/)
 
-https://github.com/user-attachments/assets/ae7966ae-fdc4-460f-bfd3-482b544b8288
 
 * **​Memory Layer：** ​From **text** memory to **multimodal** memory
   And from **storage-based** memory to **parameterized** memory.  
   The AI remembers not only text, but also images, audio, and contextual modalities —- making memory deeper and more integrated.
 
-[▶️ Click to watch the high-quality memory demo video](https://www.bilibili.com/video/BV11V2vBWEBE/)
+[▶️ Click to watch the high-quality memory demo video](https://www.youtube.com/watch?v=j_DYqvypyos)
 
-https://github.com/user-attachments/assets/d7b89302-61b1-43b5-9dad-13d28a420b2d
 
-* **Execution Layer：**From **simple API calls to complex reasoning**
+* **Execution Layer：** From **simple API calls to complex reasoning**
   EVA OS evolves from executing fixed commands to performing logical reasoning and solving complex tasks.
 
-[▶️ Click to watch the high-quality execution demo video](https://www.bilibili.com/video/BV1sV2vBWE6M/)
+[▶️ Click to watch the high-quality execution demo video](https://www.youtube.com/watch?v=-Jf2SIal3Bg)
 
-https://github.com/user-attachments/assets/00f88f5a-9825-49f0-a429-ebfe5a78cd1b
 
 * **Persona Layer (Representation)：** From **programmed behavior to model-driven dynamics**  
   The AI’s “persona” becomes dynamic, adaptive, and humanlike—shaped by large model reasoning rather than rigid code.
 
-[▶️ Click to watch the high-quality digital avatar demo video](https://www.bilibili.com/video/BV1xV2vBWEcR/)
+[▶️ Click to watch the high-quality digital avatar demo video](https://www.youtube.com/watch?v=It3bmKiHD64)
 
-https://github.com/user-attachments/assets/37d6d325-2916-4942-ac62-8ca6bcb1c3bc
 
 ## **✨ EVA OS 1.0 Features**
 
