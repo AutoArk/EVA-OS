@@ -44,8 +44,9 @@ Our belief:
 * **​Interaction Layer：​** From **single-modality** to **multi-modality**  
   The system can simultaneously understand text, speech, images, video, etc. It also supports barge-in, speech interruption, and real-time responsiveness, making AI “converse like a human.”
 
-[▶️ Click to watch the high-quality interaction demo video](https://www.bilibili.com/video/BV1sV2vBWE8L/)
+[▶️ Click to watch the high-quality interaction demo video](https://www.youtube.com/watch?v=tUJyDB1cbiQ)
 
+https://github.com/user-attachments/assets/ae7966ae-fdc4-460f-bfd3-482b544b8288
 
 * **​Memory Layer：** ​From **text** memory to **multimodal** memory
   And from **storage-based** memory to **parameterized** memory.  
@@ -53,18 +54,21 @@ Our belief:
 
 [▶️ Click to watch the high-quality memory demo video](https://www.youtube.com/watch?v=j_DYqvypyos)
 
+https://github.com/user-attachments/assets/2f44caa4-9ed7-4ece-a55d-ec64a56ba825
 
 * **Execution Layer：** From **simple API calls to complex reasoning**
   EVA OS evolves from executing fixed commands to performing logical reasoning and solving complex tasks.
 
 [▶️ Click to watch the high-quality execution demo video](https://www.youtube.com/watch?v=-Jf2SIal3Bg)
 
+https://github.com/user-attachments/assets/45f06c32-a121-4fea-890e-3f6b9ba1d54e
 
 * **Persona Layer (Representation)：** From **programmed behavior to model-driven dynamics**  
   The AI’s “persona” becomes dynamic, adaptive, and humanlike—shaped by large model reasoning rather than rigid code.
 
 [▶️ Click to watch the high-quality digital avatar demo video](https://www.youtube.com/watch?v=It3bmKiHD64)
 
+https://github.com/user-attachments/assets/4b4f8139-80ec-48c2-9e4c-28bd36277b81
 
 ## **✨ EVA OS 1.0 Features**
 
