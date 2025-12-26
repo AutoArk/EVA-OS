@@ -12,6 +12,12 @@
 
 ## 🚀 Milestone Updates | Latest Updates
 
+**[2025-12-26] Release · EVA OS v1.0.1 Launched!**
+
+* ​**🌐 Python SDK**​: We provide a python version client SDK, for easier development on your device
+* **🛠️ Customized MCP Tools**​: User can config any online MCP tools in your own solution!
+* ​**🔑 Share your solution to your friend**​: Share your solution to your friend in one click, with full functions.
+
 **[2025-12-07] Release · EVA OS v1.0.0 Officially Launched!**
 
 * ​**🎧 Full Duplex Interaction**​: millisecond-level latency, supports barge-in during conversations, achieving truly human-like real-time dialogue
