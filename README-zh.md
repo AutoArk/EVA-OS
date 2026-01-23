@@ -1,5 +1,10 @@
 <div align="center">
   <a href="./README.md"><img height="28" src="https://img.shields.io/badge/🌐 English-1f6feb?style=flat-square"></a>&nbsp;<a href="./README-zh.md"><img height="28" src="https://img.shields.io/badge/🇨🇳 中文-1f6feb?style=flat-square"></a>
+  <br>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20IoT-lightgrey?style=flat-square" alt="Platform">
+  <a href="https://eva.autoarkai.com"><img src="https://img.shields.io/badge/website-eva.autoarkai.com-blue?style=flat-square" alt="Website"></a>
+  <a href="https://github.com/AutoArk/EVA-OS/stargazers"><img src="https://img.shields.io/github/stars/AutoArk/EVA-OS?style=social" alt="Stars"></a>
 </div>
 
 # **EVA ​OS​ — 面向新一代硬件的实时多模态AIOS**
@@ -11,6 +16,13 @@
 ![Image](https://github.com/user-attachments/assets/bae2c5f6-cc00-4c0a-a1a3-3ad875c726c0)
 
 ## 🚀 里程碑更新 | Latest Updates
+
+**[2026-01-23] EVA OS v1.0.2 发布**
+
+* **🚀 体验升级**: 增强了模型语音识别和语音合成能力，识别更准，响应更快
+* **🗣️ 新增AI助手**: 新增口译助手、方言聊天搭子多个内置Agent
+* **🛡️ 沉浸式模式**: 内置Agent支持模式接管，明确退出指令后才会退出
+* **📍 位置自动感知**: 使用高德地图MCP时自动上报地理位置信息
 
 **[2025-12-26] EVA OS v1.0.1 发布**
 

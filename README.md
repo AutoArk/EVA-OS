@@ -1,5 +1,10 @@
 <div align="center">
   <a href="./README.md"><img height="28" src="https://img.shields.io/badge/🌐 English-1f6feb?style=flat-square"></a>&nbsp;<a href="./README-zh.md"><img height="28" src="https://img.shields.io/badge/🇨🇳 中文-1f6feb?style=flat-square"></a>
+  <br>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/platform-iOS%20%7C%20Android%20%7C%20IoT-lightgrey?style=flat-square" alt="Platform">
+  <a href="https://eva.autoarkai.com"><img src="https://img.shields.io/badge/website-eva.autoarkai.com-blue?style=flat-square" alt="Website"></a>
+  <a href="https://github.com/AutoArk/EVA-OS/stargazers"><img src="https://img.shields.io/github/stars/AutoArk/EVA-OS?style=social" alt="Stars"></a>
 </div>
 
 # **EVA OS — Real-Time Multimodal AIOS for the Next Generation Hardware**
@@ -11,6 +16,13 @@
 ![Image](https://github.com/user-attachments/assets/becd21cd-f5f8-46c4-a8f5-6d11ddb73ac9)
 
 ## 🚀 Milestone Updates | Latest Updates
+
+**[2026-01-23] EVA OS v1.0.2 Launched!**
+
+* **🚀 Experience Upgrade**: Enhanced speech recognition and speech synthesis capabilities, more accurate and faster.
+* **🗣️ New AI Agents**: Added several built-in Agents including interpreters and dialect companions.
+* **🛡️ Immersive Mode**: Built-in Agents support mode takeover, requiring an explicit exit command to quit.
+* **📍 Automatic Location Awareness**: Automatically reports location information when using Amap MCP.
 
 **[2025-12-26] Release · EVA OS v1.0.1 Launched!**
 
