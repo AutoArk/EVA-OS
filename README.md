@@ -19,7 +19,7 @@
 
 **[2026-01-23] EVA OS v1.0.2 Launched!**
 
-* **🚀 Experience Upgrade**: Comprehensive upgrade of TTS and ASR for faster and more accurate performance.
+* **🚀 Experience Upgrade**: Enhanced speech recognition and speech synthesis capabilities, more accurate and faster.
 * **🗣️ New AI Agents**: Added several built-in Agents including interpreters and dialect companions.
 * **🛡️ Immersive Mode**: Built-in Agents support mode takeover, requiring an explicit exit command to quit.
 * **📍 Automatic Location Awareness**: Automatically reports location information when using Amap MCP.
