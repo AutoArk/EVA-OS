@@ -7,20 +7,49 @@ import { Env } from "@/constants/env";
 import { useApiKey } from "@/hooks/use-api-key";
 import { usePermission } from "@/hooks/use-permission";
 import { usePlatform } from "@/hooks/use-platform";
-import { EvaClient } from "@/lib/eva-client";
+import { EvaClient, IRoomInfo } from "@/lib/eva-client";
 import { cn } from "@/lib/utils";
 import { ISimpleSolution } from "@/models/solution";
 import { getSimpleSolution } from "@/services/solution";
 import { AudioSession, LiveKitRoom } from "@livekit/react-native";
+import {
+  default as Geolocation,
+  GeolocationResponse,
+} from "@react-native-community/geolocation";
 import { useKeepAwake } from "expo-keep-awake";
 import { useNetworkState } from "expo-network";
+import gcoord from "gcoord";
 import { Loader2, Phone } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Linking, Platform, View } from "react-native";
+import { Linking, PermissionsAndroid, Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import RoomView from "./room-view";
 import SolutionInfo from "./solution-info";
+
+const convertToGcj02 = (
+  location: GeolocationResponse
+): GeolocationResponse => {
+  const wgs84Coords: [number, number] = [
+    location.coords.longitude,
+    location.coords.latitude,
+  ];
+  const gcj02Coords = gcoord.transform(
+    wgs84Coords,
+    gcoord.WGS84,
+    gcoord.GCJ02
+  ) as [number, number];
+
+  const convertedLocation = {
+    ...location,
+    coords: {
+      ...location.coords,
+      longitude: gcj02Coords[0],
+      latitude: gcj02Coords[1],
+    },
+  };
+  return convertedLocation;
+};
 
 export default function ChatScreen() {
   const [headerBottom, setHeaderBottom] = useState(0);
@@ -96,6 +125,33 @@ export default function ChatScreen() {
     return "拨打电话";
   }, [isConnecting]);
 
+  const fetchAddress = useCallback(async () => {
+    try {
+      if (Platform.OS === "android") {
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+      }
+
+      return await new Promise<GeolocationResponse | null>((resolve) => {
+        Geolocation.getCurrentPosition(
+          (location) => {
+            const convertedLocation = convertToGcj02(location);
+            resolve(convertedLocation);
+          },
+          (error) => {
+            console.log("获取定位出错:", error);
+            resolve(null);
+          },
+          { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
+        );
+      });
+    } catch (error) {
+      console.log("error:", error);
+      return null;
+    }
+  }, []);
+
   const onConnect = useCallback(async () => {
     if (!isMicrophoneGranted) {
       const isGranted = await requestMicrophonePermission();
@@ -105,9 +161,29 @@ export default function ChatScreen() {
       toast.error("网络异常连接失败，建议切换网络重试", {});
       return;
     }
+
     setIsConnecting(true);
+    const getRoomParams: IRoomInfo = {};
+
+    try {
+      const needLocation = solutionInfo?.capabilities?.includes('geoinfo');
+      if (needLocation) {
+        const location = await fetchAddress();
+        if (location) {
+          getRoomParams.geo_info = {
+            longitude: location.coords.longitude,
+            latitude: location.coords.latitude,
+          };
+        }
+      }
+    } catch (error) {
+      console.error("获取solution详情失败：", error);
+      setIsConnecting(false);
+      return;
+    }
+
     evaClient
-      ?.getRoom()
+      ?.getRoom(getRoomParams)
       .then((res) => {
         setToken(res.roomToken);
         setIsConnected(true);
@@ -119,7 +195,14 @@ export default function ChatScreen() {
       .finally(() => {
         setIsConnecting(false);
       });
-  }, [isMicrophoneGranted, networkState, evaClient, requestMicrophonePermission]);
+  }, [
+    isMicrophoneGranted,
+    networkState,
+    evaClient,
+    requestMicrophonePermission,
+    solutionInfo,
+    fetchAddress,
+  ]);
 
   const onHeaderLayout = (num: number) => {
     setHeaderBottom(num);

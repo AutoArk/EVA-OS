@@ -7,6 +7,7 @@ export interface ISimpleSolution {
   type: string;
   created_at: string;
   updated_at: string;
+  capabilities: string[];
 }
 
 interface IMetadata {
