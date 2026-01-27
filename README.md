@@ -193,6 +193,10 @@ EVA OS is released under the MIT License.
 
 This means you are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, as long as you include the original copyright and permission notice in any copies or substantial portions.
 
+## ⚡ Powered by
+
+![Supported by](https://github.com/user-attachments/assets/7fcfd112-f14c-4356-9345-98761776bc95)
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=AutoArk/EVA-OS&type=date&legend=top-left)](https://www.star-history.com/#AutoArk/EVA-OS&type=date&legend=top-left)
