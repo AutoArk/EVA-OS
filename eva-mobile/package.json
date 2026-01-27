@@ -1,7 +1,7 @@
 {
-  "name": "arki",
+  "name": "eva-os",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -21,6 +21,7 @@
     "@livekit/react-native-expo-plugin": "^1.0.1",
     "@livekit/react-native-webrtc": "^137.0.2",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/geolocation": "^3.4.0",
     "@react-native-community/netinfo": "11.4.1",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
@@ -50,6 +51,7 @@
     "expo-symbols": "~1.0.7",
     "expo-system-ui": "~6.0.7",
     "expo-web-browser": "~15.0.7",
+    "gcoord": "^1.0.7",
     "livekit-client": "^2.15.7",
     "lucide-react-native": "^0.545.0",
     "nativewind": "^4.2.1",
