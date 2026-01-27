@@ -207,7 +207,7 @@ This means you are free to use, copy, modify, merge, publish, distribute, sublic
 
 ## ⚡ Powered by
 
-![Supported by](https://github.com/user-attachments/assets/7fcfd112-f14c-4356-9345-98761776bc95)
+![Powered by](https://github.com/user-attachments/assets/7fcfd112-f14c-4356-9345-98761776bc95)
 
 ## Star History
 
