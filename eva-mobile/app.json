@@ -20,7 +20,8 @@
           "NSAllowsArbitraryLoads": true
         },
         "UIStatusBarHidden": false,
-        "UIViewControllerBasedStatusBarAppearance": false
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "NSLocationWhenInUseUsageDescription": "此应用需要访问您的位置以提供基于位置的服务"
       },
       "bitcode": false
     },
@@ -51,7 +52,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.WAKE_LOCK",
-        "android.permission.BLUETOOTH"
+        "android.permission.BLUETOOTH",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "package": "com.autoarkai.evamobile"
     },
