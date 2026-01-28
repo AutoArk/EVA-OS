@@ -29,7 +29,7 @@
 * **🚀 Experience Upgrade**: Enhanced speech recognition and speech synthesis capabilities, more accurate and faster.
 * **🗣️ New AI Agents**: Added several built-in Agents including interpreters and dialect companions.
 * **🛡️ Immersive Mode**: Built-in Agents support mode takeover, requiring an explicit exit command to quit.
-* **📍 Automatic Location Awareness**: Automatically reports location information when using Amap MCP.
+* **📍 Location Awareness**: Reports location information when using Amap MCP.(authorization required)
 
 **[2025-12-26] Release · EVA OS v1.0.1 Launched!**
 
