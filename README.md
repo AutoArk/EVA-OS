@@ -24,6 +24,12 @@
 
 ## 🚀 Milestone Updates | Latest Updates
 
+**[2026-03-02] EVA OS v1.0.3 Launched!**
+
+* **✨ Experience Optimization**: Enhanced user experience with multiple bug fixes.
+  - 🔗 Fixed issue where certain shared links were invalid.
+  - 🎬 Fixed incomplete voice synthesis when Virtual Avatar is enabled.
+
 **[2026-01-23] EVA OS v1.0.2 Launched!**
 
 * **🚀 Experience Upgrade**: Enhanced speech recognition and speech synthesis capabilities, more accurate and faster.
