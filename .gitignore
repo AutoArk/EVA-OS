@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# JetBrains IDEs
+.idea/
+clients/.idea/
+clients/python-common-sdk/.idea/
+
+# Python bytecode cache
+clients/python-common-sdk/__pycache__/
+
+.env
