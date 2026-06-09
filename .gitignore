@@ -7,6 +7,8 @@ clients/.idea/
 clients/python-common-sdk/.idea/
 
 # Python bytecode cache
-clients/python-common-sdk/__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
 
 .env

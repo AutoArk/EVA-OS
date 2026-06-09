@@ -15,24 +15,22 @@ try:
 except ImportError:
     rtc = None
 
-from shared import (
-    AudioOutputBuffer,
-    TaskFSM,
-    WakeWordRunner,
-    find_audio_device_index,
-    wrap_rtvi_envelope,
-)
+from shared.audio import AudioOutputBuffer, find_audio_device_index, AudioConsumer
+from shared.fsm import RTVITaskNegotiator
+from shared.wake_word import WakeWordEngine
+from shared.protocol import wrap_rtvi_envelope
+from .base import BaseEvaClient
 
 # --- Logging Configuration ---
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [%(name)s] %(levelname)s - %(message)s"
 )
-logger = logging.getLogger("EvaClient")
+logger = logging.getLogger("EvaLiveKitClient")
 
 
-class EvaClient:
+class EvaLiveKitClient(BaseEvaClient):
     """
-    Initializes the Eva client.
+    Initializes the Eva LiveKit client.
 
     Args:
         api_key (str):
@@ -45,11 +43,9 @@ class EvaClient:
             Microphone input sample rate in Hz. Defaults to 48000.
         spk_sample_rate (int, optional):
             Speaker output sample rate in Hz. Defaults to 48000.
-        mic_channels (int, optional):
-            Number of microphone input channels. Defaults to 1.
-        spk_channels (int, optional):
-            Number of speaker output channels. Defaults to 1.
-        frame_size_ms (int, optional):
+        channels (int, optional):
+            Number of audio channels. Defaults to 1.
+        frame_duration_ms (int, optional):
             Duration of a single audio frame in milliseconds. Defaults to 60ms.
         camera_index (int, optional):
             Index of the camera device. Defaults to 0.
@@ -63,8 +59,8 @@ class EvaClient:
             Base URL for the HTTP API service.
         wss_url (str, optional):
             WebSocket URL for RTC.
-        wake_word (str, optional):
-            Wake word for voice activation. If provided, enables wake word detection.
+        wake_word_engine (WakeWordEngine, optional):
+            Wake word engine for voice activation.
         wake_word_target_task (str, optional):
             Target task to switch to when wake word is detected.
         on_task_change (callable, optional):
@@ -77,53 +73,49 @@ class EvaClient:
         spk_index=0,
         mic_sample_rate=48000,
         spk_sample_rate=48000,
-        mic_channels=1,
-        spk_channels=1,
-        frame_size_ms=60,
+        channels=1,
+        frame_duration_ms=60,
         camera_index=0,
         video_width=640,
         video_height=480,
         video_fps=30,
         base_url="https://eva.autoarkai.com",
         wss_url="wss://rtc.autoarkai.com",
-        wake_word: Optional[str] = None,
+        wake_word_engine: Optional[WakeWordEngine] = None,
         wake_word_target_task: Optional[str] = None,
         on_task_change: Optional[Callable[[str, str], None]] = None,
     ):
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            mic_index=mic_index,
+            spk_index=spk_index,
+            mic_sample_rate=mic_sample_rate,
+            spk_sample_rate=spk_sample_rate,
+            channels=channels,
+            frame_duration_ms=frame_duration_ms,
+            camera_index=camera_index,
+            video_width=video_width,
+            video_height=video_height,
+            video_fps=video_fps,
+            wake_word_engine=wake_word_engine,
+            wake_word_target_task=wake_word_target_task,
+            on_task_change=on_task_change,
+        )
+
         if rtc is None:
             raise ImportError(
                 "livekit is not installed. Please install it using: "
                 "pip install livekit livekit-api"
             )
 
-        self.api_key = api_key
-        self.base_url = base_url
         self.wss_url = wss_url
 
-        # Audio Configuration
-        self.pa = pyaudio.PyAudio()
-        self.mic_sample_rate = mic_sample_rate
-        self.spk_sample_rate = spk_sample_rate
-        self.mic_channels = mic_channels
-        self.spk_channels = spk_channels
-        self.frame_size_ms = frame_size_ms
-
-        # Video Configuration
-        self.camera_index = camera_index
-        self.video_width = video_width
-        self.video_height = video_height
-        self.video_fps = video_fps
-
-        # Resolve audio device indices using shared function
-        self.mic_index = find_audio_device_index(self.pa, mic_index, is_input=True)
-        self.spk_index = find_audio_device_index(self.pa, spk_index, is_input=False)
-
-        if not all([self.base_url, self.wss_url, self.api_key]):
+        if not self.wss_url:
             raise ValueError("Missing required environment variables.")
 
         self.audio_buffer = AudioOutputBuffer()
         self.room = None
-        self._shutdown_event = asyncio.Event()
 
         # Sources & Tracks
         self.mic_source = None
@@ -135,35 +127,16 @@ class EvaClient:
         self.output_stream = None
         self._loop = None
 
-        # Task FSM for client-side task state coordination
-        self.task_fsm = TaskFSM(on_task_change=on_task_change)
-        self._wake_word_target_task = wake_word_target_task
-
-        # Wake word detection (optional)
-        self.wake_word_runner: Optional[WakeWordRunner] = None
-        if wake_word:
-            self.wake_word_runner = WakeWordRunner(
-                wake_word=wake_word,
-                on_detected=self._on_wake_word_detected,
-                sample_rate=mic_sample_rate,
-            )
-
         # RTVI data channel for task state coordination
         self._rtvi_topic = "task-ir-control"
 
-    def _on_wake_word_detected(self):
-        """Callback when wake word is detected."""
-        if self._wake_word_target_task and self.room:
-            logger.info(f"Wake word detected, requesting task switch to {self._wake_word_target_task}")
-            command = self.task_fsm.request_switch(self._wake_word_target_task, reason="wake_word")
-            if command:
-                if getattr(self, '_loop', None):
-                    # 跨线程安全地将协程调度到主事件循环执行
-                    asyncio.run_coroutine_threadsafe(
-                        self._send_rtvi_message(command), self._loop
-                    )
-                else:
-                    logger.error("No event loop found to send RTVI message")
+    def _send_command_async(self, command: dict):
+        if getattr(self, '_loop', None):
+            asyncio.run_coroutine_threadsafe(
+                self._send_rtvi_message(command), self._loop
+            )
+        else:
+            logger.error("No event loop found to send RTVI message")
 
     async def _send_rtvi_message(self, message: dict):
         """Send RTVI message via LiveKit data channel."""
@@ -232,7 +205,7 @@ class EvaClient:
                 msg_dict = json.loads(data.decode("utf-8"))
                 
                 # FSM handles unwrapping the RTVI envelope
-                response = self.task_fsm.handle_message(msg_dict)
+                response = self.task_negotiator.handle_message(msg_dict)
                 if response:
                     if getattr(self, '_loop', None):
                         asyncio.run_coroutine_threadsafe(
@@ -256,14 +229,14 @@ class EvaClient:
         video_task = asyncio.create_task(self.publish_camera())
 
         # Start wake word detection if configured
-        if self.wake_word_runner:
-            self.wake_word_runner.start()
+        if self.wake_word_engine:
+            self.wake_word_engine.start()
 
         await self._shutdown_event.wait()
 
         # Stop wake word detection
-        if self.wake_word_runner:
-            self.wake_word_runner.stop()
+        if self.wake_word_engine:
+            self.wake_word_engine.stop()
 
         # Cleanup Tasks
         if mic_task:
@@ -290,7 +263,7 @@ class EvaClient:
             await self.room.disconnect()
 
     async def publish_microphone(self):
-        self.mic_source = rtc.AudioSource(self.mic_sample_rate, self.mic_channels)
+        self.mic_source = rtc.AudioSource(self.mic_sample_rate, self.channels)
         track = rtc.LocalAudioTrack.create_audio_track("mic_track", self.mic_source)
         options = rtc.TrackPublishOptions()
         options.source = rtc.TrackSource.SOURCE_MICROPHONE
@@ -304,22 +277,21 @@ class EvaClient:
             logger.error(f"Failed to publish microphone: {e}")
             return
 
-        frames_per_buffer = int(self.mic_sample_rate * self.frame_size_ms / 1000)
+        frames_per_buffer = int(self.mic_sample_rate * self.frame_duration_ms / 1000)
         loop = asyncio.get_running_loop()
 
         # PyAudio Callback
         def mic_callback(in_data, frame_count, time_info, status):
             # Feed audio to wake word runner if enabled
-            if self.wake_word_runner:
-                # Convert bytes to numpy array for wake word detection
-                audio_np = np.frombuffer(in_data, dtype=np.int16)
-                self.wake_word_runner.add_audio_frame(audio_np)
+            if self.wake_word_engine and isinstance(self.wake_word_engine, AudioConsumer):
+                # in_data comes as bytes
+                self.wake_word_engine.add_audio_frame(in_data, sample_rate=self.mic_sample_rate, channels=self.channels)
             
             # in_data comes as bytes
             audio_frame = rtc.AudioFrame(
                 data=in_data,
                 sample_rate=self.mic_sample_rate,
-                num_channels=self.mic_channels,
+                num_channels=self.channels,
                 samples_per_channel=frame_count,
             )
             asyncio.run_coroutine_threadsafe(
@@ -330,7 +302,7 @@ class EvaClient:
         try:
             self.input_stream = self.pa.open(
                 format=pyaudio.paInt16,
-                channels=self.mic_channels,
+                channels=self.channels,
                 rate=self.mic_sample_rate,
                 input=True,
                 input_device_index=self.mic_index,
@@ -415,24 +387,24 @@ class EvaClient:
 
     async def handle_audio_output(self, track: rtc.RemoteAudioTrack):
         audio_stream = rtc.AudioStream(
-            track, sample_rate=self.spk_sample_rate, num_channels=self.spk_channels
+            track, sample_rate=self.spk_sample_rate, num_channels=self.channels
         )
         logger.info(
             f"Speaker stream started. Rate: {self.spk_sample_rate}, Index: {self.spk_index}"
         )
 
-        frames_per_buffer = int(self.spk_sample_rate * self.frame_size_ms / 1000)
+        frames_per_buffer = int(self.spk_sample_rate * self.frame_duration_ms / 1000)
 
         # PyAudio Output Callback
         def spk_callback(in_data, frame_count, time_info, status):
             # Retrieve the exact number of bytes needed from the buffer
-            data = self.audio_buffer.get_chunk(frame_count * self.spk_channels)
+            data = self.audio_buffer.get_chunk(frame_count * self.channels)
             return (data, pyaudio.paContinue)
 
         try:
             self.output_stream = self.pa.open(
                 format=pyaudio.paInt16,
-                channels=self.spk_channels,
+                channels=self.channels,
                 rate=self.spk_sample_rate,
                 output=True,
                 output_device_index=self.spk_index,

@@ -36,13 +36,11 @@ import pyaudio
 import requests
 import websockets
 
-from shared import (
-    AudioOutputBuffer,
-    TaskFSM,
-    WakeWordRunner,
-    find_audio_device_index,
-    wrap_rtvi_envelope,
-)
+from shared.audio import AudioOutputBuffer, find_audio_device_index, AudioConsumer
+from shared.fsm import RTVITaskNegotiator
+from shared.wake_word import WakeWordEngine
+from shared.protocol import wrap_rtvi_envelope
+from .base import BaseEvaClient
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - [%(name)s] %(levelname)s - %(message)s"
@@ -62,7 +60,7 @@ UPLINK_VIDEO_STREAM_ID = 1
 DOWNLINK_AUDIO_STREAM_ID = 2
 
 
-class EvaWebSocketClient:
+class EvaWebSocketClient(BaseEvaClient):
     """
     Eva platform WebSocket client.
 
@@ -102,43 +100,32 @@ class EvaWebSocketClient:
         echo_suppression_timeout_ms: int = 500,
         barge_in_multiplier: float = 1.5,
         barge_in_offset: int = 500,
-        wake_word: Optional[str] = None,
-        wake_word_model_path: Optional[str] = None,
+        wake_word_engine: Optional[WakeWordEngine] = None,
         wake_word_target_task: Optional[str] = None,
         on_task_change: Optional[Callable[[str, str], None]] = None,
     ):
-        if not api_key:
-            raise ValueError("api_key is required")
-        if not base_url:
-            raise ValueError("base_url is required")
-
-        self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
-
-        # Audio configuration (mic and speaker can have independent sample rates)
-        self.mic_sample_rate = mic_sample_rate
-        self.spk_sample_rate = spk_sample_rate
-        self.channels = channels
-        self.frame_duration_ms = frame_duration_ms
-        self.mic_frame_size = int(mic_sample_rate * frame_duration_ms / 1000)
-        self.spk_frame_size = int(spk_sample_rate * frame_duration_ms / 1000)
-
-        # Video configuration
-        self.camera_index = camera_index
-        self.video_width = video_width
-        self.video_height = video_height
-        self.video_fps = video_fps
-
-        # Audio I/O
-        self.pa = pyaudio.PyAudio()
-        self.mic_index = find_audio_device_index(self.pa, mic_index, is_input=True)
-        self.spk_index = find_audio_device_index(self.pa, spk_index, is_input=False)
+        super().__init__(
+            api_key=api_key,
+            base_url=base_url,
+            mic_index=mic_index,
+            spk_index=spk_index,
+            mic_sample_rate=mic_sample_rate,
+            spk_sample_rate=spk_sample_rate,
+            channels=channels,
+            frame_duration_ms=frame_duration_ms,
+            camera_index=camera_index,
+            video_width=video_width,
+            video_height=video_height,
+            video_fps=video_fps,
+            wake_word_engine=wake_word_engine,
+            wake_word_target_task=wake_word_target_task,
+            on_task_change=on_task_change,
+        )
 
         # Runtime state
         self.audio_buffer = AudioOutputBuffer()
         self.ws = None
         self.session_id = None
-        self._shutdown_event = asyncio.Event()
         self._connect_time_ms = 0.0
         self._sequence = 0
         self._bot_speaking = False  # True while bot audio is being received/played
@@ -169,19 +156,14 @@ class EvaWebSocketClient:
         self.uplink_video_stream_id = UPLINK_VIDEO_STREAM_ID
         self.downlink_audio_stream_id = DOWNLINK_AUDIO_STREAM_ID
 
-        # Task FSM for client-side task state coordination
-        self.task_fsm = TaskFSM(on_task_change=on_task_change)
-        self._wake_word_target_task = wake_word_target_task
-
-        # Wake word detection (optional)
-        self.wake_word_runner: Optional[WakeWordRunner] = None
-        if wake_word:
-            self.wake_word_runner = WakeWordRunner(
-                wake_word=wake_word,
-                on_detected=self._on_wake_word_detected,
-                model_path=wake_word_model_path,
-                sample_rate=mic_sample_rate,
+    def _send_command_async(self, command: dict):
+        if getattr(self, '_loop', None) and self.ws:
+            envelope = wrap_rtvi_envelope(command)
+            asyncio.run_coroutine_threadsafe(
+                self.ws.send(json.dumps(envelope)), self._loop
             )
+        else:
+            logger.warning("[WakeWord] Cannot send command: ws or loop not available")
 
     # ------------------------------------------------------------------
     # Session creation (HTTP)
@@ -362,8 +344,8 @@ class EvaWebSocketClient:
             mic_peak = int(np.max(np.abs(pcm))) if len(pcm) > 0 else 0
 
             # Feed audio to wake word detector (always, regardless of echo suppression)
-            if self.wake_word_runner:
-                self.wake_word_runner.add_audio_frame(pcm)
+            if self.wake_word_engine and isinstance(self.wake_word_engine, AudioConsumer):
+                self.wake_word_engine.add_audio_frame(in_data, sample_rate=self.mic_sample_rate, channels=self.channels)
 
             # Echo suppression with volume-based barge-in
             should_send = True
@@ -651,7 +633,7 @@ class EvaWebSocketClient:
             # Pass to TaskFSM for task state coordination
             if msg_type in ("task.switch.advice", "task.switch.result", "system_config") or \
                "approved" in msg or "suggested_task" in msg:
-                commit_msg = self.task_fsm.handle_message(msg)
+                commit_msg = self.task_negotiator.handle_message(msg)
                 if commit_msg:
                     return commit_msg
                 return None
@@ -677,29 +659,6 @@ class EvaWebSocketClient:
                 self.uplink_video_stream_id = stream_id
             elif kind == "audio" and direction == "downlink":
                 self.downlink_audio_stream_id = stream_id
-
-    # ------------------------------------------------------------------
-    # Wake word detection callback
-    # ------------------------------------------------------------------
-    def _on_wake_word_detected(self):
-        """Callback when wake word is detected. Triggers task switch if configured."""
-        logger.info("[WakeWord] Wake word detected!")
-        
-        if self._wake_word_target_task:
-            # Request task switch via TaskFSM
-            command = self.task_fsm.request_switch(
-                target_task=self._wake_word_target_task,
-                reason="Wake word detected"
-            )
-            if command and self.ws and self._loop:
-                # Wrap command in RTVI envelope and send asynchronously
-                envelope = wrap_rtvi_envelope(command)
-                asyncio.run_coroutine_threadsafe(
-                    self.ws.send(json.dumps(envelope)),
-                    self._loop
-                )
-            else:
-                logger.warning("[WakeWord] Cannot send command: ws or loop not available")
 
     # ------------------------------------------------------------------
     # Disconnect (HTTP cleanup)
@@ -781,8 +740,8 @@ class EvaWebSocketClient:
                     tasks.append(asyncio.create_task(self._run_camera()))
 
                 # Start wake word detection if configured
-                if self.wake_word_runner:
-                    self.wake_word_runner.start()
+                if self.wake_word_engine:
+                    self.wake_word_engine.start()
                     logger.info("[WakeWord] Detection started")
 
                 # Wait for shutdown signal
@@ -805,8 +764,8 @@ class EvaWebSocketClient:
 
     def _cleanup(self):
         # Stop wake word detection
-        if self.wake_word_runner:
-            self.wake_word_runner.stop()
+        if self.wake_word_engine:
+            self.wake_word_engine.stop()
             logger.info("[WakeWord] Detection stopped")
 
         if self.input_stream is not None:

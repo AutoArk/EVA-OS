@@ -16,13 +16,14 @@ Before using this SDK, it is highly recommended to understand the design princip
 Hardware resources are limited, so the edge should be highly focused. The SDK is only responsible for:
 1. **Media Streaming:** Continuously pushing microphone audio and pulling speaker audio.
 2. **Local Wake Word Detection:** Running a lightweight VOSK model locally to catch wake words (e.g., "Hello Ark") with zero latency.
-3. **State Requests:** The edge **NEVER** processes VAD (Voice Activity Detection) or intent classification. When a wake word is detected, the SDK simply sends a `TaskSwitchAdvice` signal to the cloud, requesting an intent switch.
+3. **State Requests:** The edge **NEVER** processes VAD (Voice Activity Detection) or intent classification. When a wake word or a button press is detected, the SDK simply sends an intent switch request to the cloud.
+4. **Action Execution:** The edge receives real-time device control and emotion messages from the cloud to execute device actions (e.g., volume adjustments) or display UI feedback instantly, completely bypassing the cloud's main business flow.
 
 **The Cloud (EVA OS / Pipecat Engine)**
 The cloud acts as the central brain. It continuously receives audio and handles:
 1. **VAD & ASR:** Determining when the user stops speaking and converting speech to text.
 2. **LLM Intent Understanding & Business Logic:** Executing complex workflows based on the user's intent.
-3. **Task Orchestration:** The cloud is the final decision-maker. It evaluates the edge's `TaskSwitchAdvice`. Only when the cloud replies with a `TaskSwitchResult (approved=True)` will the edge truly transition to the new interaction task.
+3. **Task Orchestration:** The cloud provides intelligent task advice based on voice intent, and validates edge requests. However, **the Edge is the sovereign state owner**. Only after the edge confirms and executes a state switch will the cloud update its mirrored state and seamlessly activate the corresponding AI Agent to take over the conversation.
 
 This ensures that the state of your hardware device and the cloud engine are always perfectly synchronized via the RTVI control protocol.
 
@@ -69,7 +70,7 @@ Note down the `Index` for your microphone and speaker, and use them to configure
 
 ### 4. Run the Client
 ```bash
-python python_example.py
+python python_livekit_example.py
 ```
 
 ---
@@ -91,16 +92,16 @@ Both protocols share the exact same RTVI control plane. Your business logic does
 ### Scenario B: Wake Word & Seamless Intent Handoff
 EVA OS V2 uses **VOSK** as the unified local wake word engine (supports Chinese/English natively with low CPU footprint).
 
-In `python_example.py`:
+In `python_livekit_example.py`:
 ```python
-client = EvaClient(
+client = EvaLiveKitClient(
     # ...
     wake_word="你好方舟",                 # The wake word to listen for
     wake_word_target_task="intent_task",  # Request cloud to switch to this task
-    on_task_change=on_task_change,        # Callback when cloud approves the switch
+    on_task_change=on_task_change,        # Callback when a task switch is finalized
 )
 ```
-**Best Practice:** Do NOT attempt to mute the microphone after a wake word is detected. Speak naturally ("Hello Ark, play some music"). The local VOSK engine will flag the wake word and request a task switch silently in the background. The cloud service has excellent fault-tolerance and is designed to process continuous speech, intelligently understanding your intent. You simply need to listen for the `on_task_change` callback.
+**Best Practice:** Do NOT attempt to mute the microphone after a wake word is detected. Speak naturally ("Hello Ark, play some music"). The local VOSK engine will flag the wake word and send a `task.switch.command` silently in the background. The cloud service has excellent fault-tolerance and is designed to process continuous speech, intelligently understanding your intent and providing `task.switch.advice`. You simply need to listen for the `on_task_change` callback to handle the final state change.
 
 ### Scenario C: Echo Suppression & Voice Barge-in (Full Duplex)
 If your hardware lacks hardware-level AEC (Acoustic Echo Cancellation), the SDK provides a volume-based software suppression mechanism.
@@ -116,7 +117,7 @@ When the bot is speaking through the speaker, the microphone is normally suppres
 
 ## 📚 API Reference
 
-### EvaClient & EvaWebSocketClient Parameters
+### EvaLiveKitClient & EvaWebSocketClient Parameters
 
 | Parameter | Type | Required | Default | Description |
 | :--- | :--- | :---: | :--- | :--- |
@@ -130,7 +131,7 @@ When the bot is speaking through the speaker, the microphone is normally suppres
 | **wake_word** | `str` | No | `None` | Local wake word to trigger VOSK background detection. |
 | **wake_word_model_path**| `str` | No | `None` | Path to custom VOSK model. If None, auto-downloads a lightweight Chinese model. |
 | **wake_word_target_task**| `str`| No | `None` | The task to request from the cloud when wake word hits. |
-| **on_task_change**| `callable`| No| `None` | Hook triggered when the cloud approves a task switch. |
+| **on_task_change**| `callable`| No| `None` | Hook triggered when a task switch is finalized. |
 
 ### WebSocket Disconnection Flow
 If using the WebSocket transport (`eva_ws_client.py`), you must explicitly terminate the session to release cloud resources.

@@ -17,10 +17,15 @@ Use `list_audio_devices.py` to discover available audio device indices.
 import asyncio
 import os
 import signal
+import threading
 
 from dotenv import load_dotenv
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from eva_ws_client import EvaWebSocketClient
+from client.ws_client import EvaWebSocketClient
+from shared.wake_word import VoskWakeWordEngine
 
 load_dotenv()
 
@@ -59,11 +64,9 @@ async def main():
         barge_in_offset=500,
         # Wake word detection (optional)
         # VOSK engine: supports Chinese, auto-downloads small model
-        #   wake_word="你好方舟"  → detect "你好方舟" in speech
-        #   wake_word_model_path=None  → auto-download vosk-model-small-cn-0.22
-        # Set wake_word=None to disable
-        wake_word="你好方舟",
-        wake_word_model_path=None,
+        #   wake_word_engine=VoskWakeWordEngine(wake_word="你好方舟")
+        # Set wake_word_engine=None to disable
+        wake_word_engine=VoskWakeWordEngine(wake_word="你好方舟"),
         wake_word_target_task="intent_task",
         # Task change callback (called when task switches, e.g., after wake word)
         on_task_change=on_task_change,
@@ -76,6 +79,23 @@ async def main():
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, signal_handler)
+
+    def command_listener():
+        print("\n[Manual Test] You can now type a task ID (e.g. 'intent_task') and press Enter to test edge hard-switch!")
+        while True:
+            try:
+                cmd = input().strip()
+                if cmd == "quit" or cmd == "exit":
+                    client.stop()
+                    break
+                if cmd:
+                    client.switch_task(cmd)
+            except EOFError:
+                break
+            except Exception as e:
+                print(f"Error in command listener: {e}")
+
+    threading.Thread(target=command_listener, daemon=True).start()
 
     await client.run()
 
