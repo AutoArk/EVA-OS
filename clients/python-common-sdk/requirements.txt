@@ -1,0 +1,21 @@
+# Eva Python Client - Dependencies
+#
+# Required:
+requests>=2.28.0
+websockets>=12.0
+pyaudio>=0.2.13
+numpy>=1.24.0
+opuslib>=3.0.1
+python-dotenv>=1.0.0
+scipy>=1.11.0
+
+# Optional (for LiveKit/WebRTC transport):
+livekit>=0.11.0
+livekit-api>=0.5.0
+
+# Optional (for video capture):
+# opencv-python>=4.8.0
+
+# Optional (for wake word detection):
+# VOSK engine (supports Chinese, auto-downloads model):
+# vosk>=0.3.45

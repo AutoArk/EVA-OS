@@ -1,111 +1,138 @@
-# EVA OS Python 客户端
+# EVA OS Python 客户端 SDK 接入指南
 
-本项目是连接 EVA OS 实时多模态 AI 服务的官方 Python 参考实现。它展示了如何通过 API 进行身份验证，使用 LiveKit 建立 WebRTC 连接，并处理实时的双向音视频流。
+本项目是连接硬件设备与 **EVA OS 实时多模态 AI 服务** 的官方 Python 参考实现。它展示了如何进行接口鉴权、建立超低延迟的长连接，并处理实时的双向音视频流。
 
-## 前置要求
+更重要的是，这份说明书将引导你如何将定制硬件（无论是 PC 还是低功耗 IoT 设备）完美契合进 EVA OS V2 的**“云边协同 (Edge-Cloud Synergy)”**架构之中。
 
-### 系统依赖
-本项目依赖 `PortAudio` 库。在安装 Python `PyAudio` 库之前，**必须**先安装系统级的开发头文件。
+---
 
-*   **Ubuntu / Debian (及 Rockchip/树莓派等嵌入式系统):**
+## 🏗 架构理念：云边协同与边端状态主权
+
+在接入 SDK 之前，强烈建议您了解 EVA OS V2 的设计原则，我们称之为**“边端状态主权”**。
+
+### 职责划分
+
+**边端（您的硬件与本 SDK）**
+硬件算力珍贵，因此边端必须保持专注和轻量。SDK 仅负责：
+1. **流媒体传输：** 持续不断地推送麦克风阵列数据，并拉取扬声器音频。
+2. **本地唤醒检测：** 在后台运行极低内存占用的 VOSK 模型，实现零延迟的唤醒词检测（如“你好方舟”）。
+3. **状态请求：** 边端**绝对不做** VAD（静音断句检测）和意图分类。当捕获到唤醒词或按键事件时，SDK 只是通过控制平面向云端发送任务切换的意向。
+4. **指令执行：** 边端实时接收来自云端的设备控制与情绪感知消息，实现如调整音量、UI 情绪反馈等即时响应，该链路完全绕过云端核心业务流。
+
+**云端（EVA OS / Pipecat 引擎）**
+云端作为中央大脑，拥有充足的算力，它持续接收音视频流并统筹复杂的业务逻辑：
+1. **全局 VAD 与 ASR：** 判断用户何时说话结束，并将音频转为文本。
+2. **意图理解与业务流转：** 执行复杂的工作流并响应用户请求。
+3. **任务调度协同：** 云端负责意图理解并下发建议，或对边端的切换请求进行审批。但在我们的架构中，**边端是状态的最终主权拥有者**。只有当边端真正确认并执行了状态切换，云端才会更新其内部的镜像状态，并顺滑地切出对应的 AI Agent 来接管对话。
+
+这种握手机制确保了您的物理设备与云端数字大脑的状态（通过 RTVI 协议）永远保持绝对同步。
+
+---
+
+## 🚀 快速入门
+
+### 1. 安装系统依赖
+本项目底层依赖 `PortAudio`。在安装 Python 依赖前，**必须**先安装系统级的开发库。
+
+*   **Ubuntu / Debian (及树莓派/开发板等):**
     ```bash
     sudo apt-get update
     sudo apt-get install libportaudio2 portaudio19-dev
     ```
-
 *   **macOS:**
     ```bash
     brew install portaudio
     ```
 
-*   **Windows:**
-    通常 `pip` 会自动安装预编译的二进制包（Wheels）。
-
-### Python 环境
-*   需要 Python 3.11 或更高版本。
-
-## 安装步骤
-
-1.  **克隆代码仓库:**
-    ```bash
-    git clone git@github.com:AutoArk/EVA-OS.git
-    cd EVA-OS/clients/python-common-sdk
-    ```
-
-2.  **创建并激活虚拟环境 (推荐):**
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  
-    ```
-
-3.  **安装 Python 依赖:**
-    ```bash
-    pip install livekit requests pyaudio numpy python-dotenv opencv-python
-    ```
-
-## 配置说明
-
-在项目根目录下创建一个 `.env` 文件。
-
-```ini
-# .env 文件
-# 必填：API Key
-EVA_API_KEY=YOUR_ACTUAL_API_KEY_HERE
+### 2. 配置环境
+克隆代码并安装依赖：
+```bash
+python3 -m venv venv
+source venv/bin/activate  
+pip install -r requirements.txt
+# 可选：如果需要摄像头画面，需安装 opencv
+pip install opencv-python
 ```
 
-### EvaClient 参数详细说明
+在项目根目录创建 `.env` 文件：
+```ini
+# 从 EVA OS 后台创建应用获取的 Solution API Key
+EVA_API_KEY=sk-your-api-key-here
+```
 
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-| :--- | :--- | :---: | :--- | :--- |
-| **api_key** | `str` | **是** | 无 | **认证密钥**。<br>用于访问 Eva API 服务的凭证。 |
-| **mic_index** | `int` | 否 | `0` | **麦克风设备索引**。<br>指定用于录音的输入设备 ID。`0` 通常代表系统默认麦克风。 |
-| **spk_index** | `int` | 否 | `0` | **扬声器设备索引**。<br>指定用于播放音频的输出设备 ID。`0` 通常代表系统默认扬声器。 |
-| **mic_sample_rate** | `int` | 否 | `48000` | **麦克风采样率 (Hz)**。<br>录音时的音频采样频率，默认为 48kHz 。 |
-| **spk_sample_rate** | `int` | 否 | `48000` | **扬声器采样率 (Hz)**。<br>播放时的音频采样频率，默认为 48kHz。 |
-| **mic_channels** | `int` | 否 | `1` | **麦克风通道数**。<br>`1` 表示单声道 (Mono)，`2` 表示立体声 (Stereo)。 |
-| **spk_channels** | `int` | 否 | `1` | **扬声器通道数**。<br>`1` 表示单声道 (Mono)，`2` 表示立体声 (Stereo)。 |
-| **frame_size_ms** | `int` | 否 | `60` | **音频帧时长 (毫秒)**。<br>每次处理或传输的音频数据块的时间长度。这会影响延迟和网络包的大小。 |
-| **camera_index** | `int` | 否 | `0` | **摄像头设备索引**。<br>通常 `0` 对应默认系统摄像头。若有多个摄像头，请依序尝试。 |
-| **video_width** | `int` | 否 | `640` | **视频宽度**。<br>摄像头捕获图像的水平像素数。ARM 设备建议不要设置过高。 |
-| **video_height** | `int` | 否 | `480` | **视频高度**。<br>摄像头捕获图像的垂直像素数。 |
-| **video_fps** | `int` | 否 | `30` | **视频帧率**。<br>每秒传输的帧数 (FPS)。在低性能设备上建议设为 15 或 20 以降低负载。 |
-| **base_url** | `str` | 否 | `...` | **Eva API 地址**。<br>默认为 `https://eva.autoarkai.com`，用于常规 HTTP 请求。 |
-| **wss_url** | `str` | 否 | `...` | **WebSocket 地址**。<br>默认为 `wss://rtc.autoarkai.com`，用于实时音频流传输。 |
+### 3. 获取音频设备索引（极其重要！）
+`PyAudio` 对音频通道极其敏感（例如尝试用音箱作为输入录音会导致 `Invalid number of channels` 报错）。
+请务必运行设备扫描脚本：
+```bash
+python list_audio_devices.py
+```
+记下你真实麦克风和扬声器对应的 `Index` 数字，填入示例代码的 `mic_index` 和 `spk_index` 中。
+
+### 4. 启动客户端
+```bash
+python python_livekit_example.py
+```
 
 ---
 
-### 如何获取音频设备索引
-由于 `PyAudio` 对设备索引非常敏感，我们提供了一个辅助脚本来列出当前可用的设备。
+## 🛠 高级场景与最佳实践
 
-1.  运行该脚本：
-    ```bash
-    python list_audio_devices.py
-    ```
-2.  找到对应的 `Index` 数字，作为入参传递给EvaClient。
+### 场景 A：选择合适的传输协议
+SDK 提供了两套平行的参考实现，请根据您的硬件算力进行选择：
 
-## 使用指南
+1. **`eva_client.py` (LiveKit / WebRTC):**
+   *   **适用场景：** PC、Mac、树莓派 4 及以上等能跑完整 WebRTC 协议栈的设备。
+   *   **优势：** 极致的低延迟、自适应 UDP 拥塞控制、抗弱网。这是**强烈推荐**的首选协议。
+2. **`eva_ws_client.py` (原生 WebSocket):**
+   *   **适用场景：** ESP32、MCU 等算力薄弱，跑不动 WebRTC 的低功耗设备。
+   *   **优势：** 使用最基础的 WebSocket 裸传 Opus 数据包，极易用 C/C++ 移植到单片机上。
 
-运行主程序：
+这两种协议底层共享同一套 RTVI 状态机控制平面，业务代码无需修改即可无缝切换。
 
-```bash
-python python_example.py
+### 场景 B：本地唤醒与意图无缝衔接
+EVA OS V2 统一使用 **VOSK** 作为本地唤醒引擎（原生支持中英文，低 CPU 开销）。
+
+在 `python_livekit_example.py` 中配置：
+```python
+client = EvaLiveKitClient(
+    # ...
+    wake_word="你好方舟",                 # 要监听的唤醒词
+    wake_word_target_task="intent_task",  # 唤醒后向云端请求切换到的任务分支
+    on_task_change=on_task_change,        # 状态切换最终完成后的回调
+)
 ```
+**最佳实践：** 唤醒后**不要**在本地做任何麦克风静音或截断！请让用户自然、连贯地说话（例如：“你好方舟，播放儿歌”）。SDK 在后台捕获到唤醒词后会自动发起 `task.switch.command` 切换请求，而云端服务具备极强的容错理解能力，能够智能处理带有唤醒前缀的连续语音，并在必要时下发 `task.switch.advice` 建议。您只需监听 `on_task_change` 事件来处理最终的状态流转即可。
 
-### 预期行为
-1.  客户端启动并初始化音频系统和摄像头。
-2.  请求认证 Token 并连接到 WebRTC 房间。
-3.  激活指定的麦克风设备，开始推送音频流。
-4.  激活指定的摄像头设备，开始推送视频流。
-5.  订阅房间内的音频流，并通过指定的扬声器设备播放。
+### 场景 C：回声抑制与全双工打断 (Barge-in)
+如果您的硬件没有内置硬件级的 AEC（声学回声消除）芯片，SDK 提供了基于音量的纯软件双工打断机制。
 
-## 故障排除
+```python
+    echo_suppression=True,
+    barge_in_multiplier=1.5,
+    barge_in_offset=500,
+```
+在常规情况下，当云端 AI 正在说话时，SDK 会抑制麦克风的上传以防止回声死循环。但如果用户大声说话（麦克风峰值 > AI音量峰值 * 1.5 + 500），SDK 将触发**强行打断 (Barge-in)**，允许用户在 AI 播报中途直接插话。
 
-*   **安装 `pyaudio` 失败 (fatal error: portaudio.h: No such file):**
-    这是因为缺少系统开发库。请确保运行了 `sudo apt-get install portaudio19-dev`。
+---
 
-*   **`ValueError: DeviceIndexOutOfRange`:**
-    `mic_index` 或 `spk_index` 不存在。请重新运行 `list_audio_devices.py` 确认索引。
+## 📚 接口参考字典
 
-*   **摄像头无法打开:**
-    *   检查是否缺少 OpenCV 依赖。
-    *   如果设备性能不足，尝试在代码中降低 `video_width`, `video_height` 和 `video_fps`。
+### EvaLiveKitClient 与 EvaWebSocketClient 参数
+
+| 参数名 | 类型 | 必填 | 默认值 | 说明 |
+| :--- | :--- | :---: | :--- | :--- |
+| **api_key** | `str` | **是** | 无 | EVA OS 颁发的 Solution API Key。 |
+| **mic_index** | `int` | 否 | `0` | 麦克风的设备索引（通过扫描脚本获取）。 |
+| **spk_index** | `int` | 否 | `0` | 扬声器的设备索引。 |
+| **mic_sample_rate**| `int` | 否 | `48000` | 麦克风原生采样率。云端要求16kHz，SDK内部会自动做重采样。 |
+| **spk_sample_rate**| `int` | 否 | `48000` | 扬声器原生采样率。 |
+| **channels** | `int` | 否 | `1` | 通道数（1代表单声道）。 |
+| **frame_duration_ms**| `int`| 否 | `60` | 每次打包发送的 Opus 音频帧长（毫秒）。 |
+| **wake_word** | `str` | 否 | `None` | 要在后台监听的本地唤醒词。 |
+| **wake_word_model_path**| `str` | 否 | `None` | 自定义 VOSK 模型路径。为 None 时会自动下载轻量级中文模型。 |
+| **wake_word_target_task**| `str`| 否 | `None` | 命中唤醒词后，向云端申请切入的任务分支 ID。 |
+| **on_task_change**| `callable`| 否| `None` | 当状态切换最终完成后的回调函数。 |
+
+### WebSocket 资源回收说明
+如果您使用轻量级的 WebSocket 协议 (`eva_ws_client.py`)，在程序退出时必须通知云端释放资源。
+SDK 内部已封装该逻辑，在优雅退出时会自动发起 `DELETE /api/solution/chat-room-ws` 请求（携带 `{session_id}`）断开连接。
