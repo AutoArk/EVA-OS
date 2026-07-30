@@ -3,11 +3,14 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
   <img src="https://img.shields.io/badge/SDK-TypeScript%20%7C%20Python-lightgrey?style=flat-square" alt="SDK">
   <img src="https://img.shields.io/badge/platform-Mobile%20%7C%20IoT%20%7C%20Embedded-lightgrey?style=flat-square" alt="Platform">
-  <a href="https://eva.autoarkai.com"><img src="https://img.shields.io/badge/EVA_Platform-eva.autoarkai.com-blue?style=flat-square" alt="EVA Platform"></a>
   <a href="https://github.com/AutoArk/EVA-OS/stargazers"><img src="https://img.shields.io/github/stars/AutoArk/EVA-OS?style=social" alt="Stars"></a>
 </div>
 
 # **EVA Platform - 实时多模态应用与硬件开发 AIOS**
+
+<a href="https://eva.autoarkai.com">
+  <img src="https://img.shields.io/badge/官方网站-访问_EVA_Platform-2980b9?style=flat-square" alt="EVA Platform 官方网站">
+</a>
 
 > Agent Skills · Device SDK · EVA CLI · Model Gateway · Edge AI
 >
