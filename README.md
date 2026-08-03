@@ -7,10 +7,12 @@
 </div>
 
 # **EVA Platform - 实时多模态应用与硬件开发 AIOS**
-
-<a href="https://eva.autoarkai.com">
-  <img src="https://img.shields.io/badge/官方网站-访问_EVA_Platform-2980b9?style=flat-square" alt="EVA Platform 官方网站">
-</a>
+<div align="center">
+  <a href="https://eva.autoarkai.com">
+    <img src="https://img.shields.io/badge/官方网站-访问_EVA_Platform-2980b9?style=flat-square" alt="EVA Platform 官方网站">
+  </a>
+  <br>
+<div>
 
 > Agent Skills · Device SDK · EVA CLI · Model Gateway · Edge AI
 >
@@ -35,7 +37,7 @@ EVA Platform 面向 AI 应用与智能硬件开发者，提供从 AI Native 开�
 
 ---
 
-## **为什么是 EVA Platform**
+## **为什么选择 EVA Platform**
 
 AI 正在改变应用的使用方式，也正在改变应用的开发方式。
 
@@ -206,14 +208,14 @@ You are free to use, copy, modify, merge, publish, distribute, sublicense, and/o
 
 ## **Powered by**
 
-![Powered by](https://github.com/user-attachments/assets/7fcfd112-f14c-4356-9345-98761776bc95)
+![Powered by](docs/images/power_by_aliCloud.png)
 
 ## **Star History**
 
 <a href="https://www.star-history.com/?repos=AutoArk%2FEVA-OS&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&theme=dark&legend=top-left&sealed_token=_pOL3xUm7vNV3Z9gkFjrI1PA5ZZhaHYiXP1Oi3bKlgVZfeCRS0Z5kotZktvN4m4-DZ-fGozxwSZ_-oGQcvZEg_NOeSijDwO-T3PYVaMHf2UXOMxG3mszUQ" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&legend=top-left&sealed_token=_pOL3xUm7vNV3Z9gkFjrI1PA5ZZhaHYiXP1Oi3bKlgVZfeCRS0Z5kotZktvN4m4-DZ-fGozxwSZ_-oGQcvZEg_NOeSijDwO-T3PYVaMHf2UXOMxG3mszUQ" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&legend=top-left&sealed_token=_pOL3xUm7vNV3Z9gkFjrI1PA5ZZhaHYiXP1Oi3bKlgVZfeCRS0Z5kotZktvN4m4-DZ-fGozxwSZ_-oGQcvZEg_NOeSijDwO-T3PYVaMHf2UXOMxG3mszUQ" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&theme=dark&legend=top-left&sealed_token=RcFQqr7cjAtw7-Ur4L7mTj6kUK5S3IVUJby415R71QF3HBTLjCr1cjK5KAS75FIE3U8I5UWz5OF336XW0S1rilpPl6Hzj_ZaP5frRCgyutF3HeIaz2itbnBdwrjtHGrF_mXPUtwwqQFRQVlVy4LY4qtnO0QptfCIVCIWZBq6tWPnyfIIHzbf4Y9bVm13" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&legend=top-left&sealed_token=RcFQqr7cjAtw7-Ur4L7mTj6kUK5S3IVUJby415R71QF3HBTLjCr1cjK5KAS75FIE3U8I5UWz5OF336XW0S1rilpPl6Hzj_ZaP5frRCgyutF3HeIaz2itbnBdwrjtHGrF_mXPUtwwqQFRQVlVy4LY4qtnO0QptfCIVCIWZBq6tWPnyfIIHzbf4Y9bVm13" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=AutoArk/EVA-OS&type=date&legend=top-left&sealed_token=RcFQqr7cjAtw7-Ur4L7mTj6kUK5S3IVUJby415R71QF3HBTLjCr1cjK5KAS75FIE3U8I5UWz5OF336XW0S1rilpPl6Hzj_ZaP5frRCgyutF3HeIaz2itbnBdwrjtHGrF_mXPUtwwqQFRQVlVy4LY4qtnO0QptfCIVCIWZBq6tWPnyfIIHzbf4Y9bVm13" />
  </picture>
 </a>
