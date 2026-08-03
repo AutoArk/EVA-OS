@@ -12,7 +12,7 @@
     <img src="https://img.shields.io/badge/官方网站-访问_EVA_Platform-2980b9?style=flat-square" alt="EVA Platform 官方网站">
   </a>
   <br>
-<div>
+</div>
 
 > Agent Skills · Device SDK · EVA CLI · Model Gateway · Edge AI
 >
